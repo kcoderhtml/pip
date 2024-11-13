@@ -1,35 +1,25 @@
-<h1 align="center">Kreva</h1>
+<h1 align="center">Pip</h1>
 
 <p align="center">
-  <img width="460" height="460" src="https://github.com/kcoderhtml/kreva/raw/master/.github/images/logo.png">
+  <img width="460" height="460" src="https://github.com/kcoderhtml/pip/raw/master/.github/images/logo.png">
 </p>
 
-Kreva is a simple slackbot to auto add me to new channels in the [Hackclub](https://hackclub.com/slack/) slack
+Pip is dedicated to organzing and reorganizing your pastes (he belives it to be of utmost importance)
 
 ---
 
-![gif of the program in action](https://github.com/kcoderhtml/kreva/raw/master/.github/images/out.gif)
+![gif of the program in action](https://github.com/kcoderhtml/pip/raw/master/.github/images/out.gif)
 
 # Usage
 
-Create a slack app as per the [manifest.yaml](manifest.yaml) and an env as below  
-
 ```bash
-SLACK_BOT_TOKEN=xoxb-xxx-xxxx-xxxxxx
-SLACK_SIGNING_SECRET=xxxxxx
-NODE_ENV=development
-ADMINS=U062UG485EE
+go run main.go
 ```
 
-```bash
-bun install
-bun run index.ts
-```
-
-then start an ngrok
+then upload a file!
 
 ```bash
-ngrok http --domain casual-renewing-reptile.ngrok-free.app 3000
+cat example.md | ssh localhost -p 23234
 ```
 
 ## License
