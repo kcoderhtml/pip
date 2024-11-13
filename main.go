@@ -14,6 +14,8 @@ import (
 	"github.com/charmbracelet/ssh"
 	"github.com/charmbracelet/wish"
 	"github.com/charmbracelet/wish/logging"
+	"github.com/go-pg/pg/v10"
+	"github.com/joho/godotenv"
 )
 
 const (
@@ -27,6 +29,11 @@ var users = map[string]string{
 }
 
 func main() {
+	err := godotenv.Load() // 👈 load .env file
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	s, err := wish.NewServer(
 		wish.WithAddress(net.JoinHostPort(host, port)),
 		wish.WithHostKeyPath(".ssh/id_ed25519"),
@@ -70,6 +77,21 @@ func main() {
 			done <- nil
 		}
 	}()
+
+	// Connect to a database
+	opt, err := pg.ParseURL(os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Error("Could not parse database URL", "error", err)
+		return
+	}
+	db := pg.Connect(opt)
+	defer db.Close()
+
+	if err := db.Ping(context.Background()); err != nil {
+		log.Error("Could not connect to the database", "error", err)
+		return
+	}
+	log.Info("Connected to the database", "addr", opt.Addr, "user", opt.User, "database", opt.Database)
 
 	<-done
 	log.Info("Stopping SSH server")
