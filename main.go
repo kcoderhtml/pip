@@ -44,7 +44,7 @@ func main() {
 		wish.WithAddress(net.JoinHostPort(host, port)),
 		wish.WithHostKeyPath(".ssh/id_ed25519"),
 		wish.WithPublicKeyAuth(func(ctx ssh.Context, key ssh.PublicKey) bool {
-			return key.Type() == "ssh-ed25519"
+			return true
 		}),
 		wish.WithMiddleware(
 			func(next ssh.Handler) ssh.Handler {
