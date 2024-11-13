@@ -4,7 +4,10 @@
   <img width="460" height="460" src="https://github.com/kcoderhtml/pip/raw/master/.github/images/logo.png">
 </p>
 
-Pip is dedicated to organzing and reorganizing your pastes (he belives it to be of utmost importance)
+<p align="center">
+  <i>Pip is dedicated to organzing and reorganizing your pastes (he belives it to be of utmost importance)</i>
+</p>
+
 
 ---
 
