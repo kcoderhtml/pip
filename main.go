@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net"
@@ -16,6 +17,11 @@ import (
 	"github.com/charmbracelet/wish/logging"
 	"github.com/go-pg/pg/v10"
 	"github.com/joho/godotenv"
+	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/pgdialect"
+	"github.com/uptrace/bun/driver/pgdriver"
+
+	database "github.com/kcoderhtml/pip/db"
 )
 
 const (
@@ -50,7 +56,6 @@ func main() {
 							[]byte(pubkey),
 						)
 
-						fmt.Println(sess.PublicKey().Type())
 						if ssh.KeysEqual(sess.PublicKey(), parsed) {
 							wish.Println(sess, fmt.Sprintf("Hey %s!", name))
 							next(sess)
@@ -79,19 +84,32 @@ func main() {
 	}()
 
 	// Connect to a database
-	opt, err := pg.ParseURL(os.Getenv("DATABASE_URL"))
+	dsn := os.Getenv("DATABASE_URL")
+	opt, err := pg.ParseURL(dsn)
 	if err != nil {
-		log.Error("Could not parse database URL", "error", err)
+		log.Error("Could not parse DSN", "error", err)
 		return
 	}
-	db := pg.Connect(opt)
-	defer db.Close()
 
-	if err := db.Ping(context.Background()); err != nil {
+	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
+	db := bun.NewDB(sqldb, pgdialect.New())
+
+	// ping db
+	err = db.Ping()
+	if err != nil {
 		log.Error("Could not connect to the database", "error", err)
 		return
 	}
 	log.Info("Connected to the database", "addr", opt.Addr, "user", opt.User, "database", opt.Database)
+
+	err = database.CreateSchema(db)
+
+	if err != nil {
+		log.Error("Could not create schema", "error", err)
+		return
+	}
+
+	log.Info("Ready!")
 
 	<-done
 	log.Info("Stopping SSH server")
