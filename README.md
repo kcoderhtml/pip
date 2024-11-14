@@ -8,13 +8,12 @@
 #
 
 <p align="center">
-  <img width="460" height="460" src="https://github.com/kcoderhtml/pip/raw/master/.github/images/logo.png">
+  <img width="460" height="460" src="https://raw.githubusercontent.com/kcoderhtml/pip/refs/heads/master/.github/images/logo.png">
 </p>
 
 <p align="center">
   <i>Pip is dedicated to organzing and reorganizing your pastes (he belives it to be of utmost importance)</i>
 </p>
-
 
 ---
 
