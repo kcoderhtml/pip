@@ -1,8 +1,6 @@
 Output .github/images/out.gif
 Set Shell zsh
 Sleep 1s
-Type "go run main.go"
+Type "ssh localhost -p 23234"
 Enter
 Sleep 3s
-Ctrl+C
-Sleep 1s
