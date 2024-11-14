@@ -29,59 +29,14 @@ const (
 	port = "23234"
 )
 
-var users = map[string]string{
-	"Kieran": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDztLTwTbo3WAHyKS6XAx+Hwqg5yiurhR+t/oem0bawo",
-	// You can add add your name and public key here :)
-}
-
 func main() {
 	err := godotenv.Load() // 👈 load .env file
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s, err := wish.NewServer(
-		wish.WithAddress(net.JoinHostPort(host, port)),
-		wish.WithHostKeyPath(".ssh/id_ed25519"),
-		wish.WithPublicKeyAuth(func(ctx ssh.Context, key ssh.PublicKey) bool {
-			return true
-		}),
-		wish.WithMiddleware(
-			func(next ssh.Handler) ssh.Handler {
-				return func(sess ssh.Session) {
-					// if the current session's user public key is one of the
-					// known users, we greet them and return.
-					for name, pubkey := range users {
-						parsed, _, _, _, _ := ssh.ParseAuthorizedKey(
-							[]byte(pubkey),
-						)
-
-						if ssh.KeysEqual(sess.PublicKey(), parsed) {
-							wish.Println(sess, fmt.Sprintf("Hey %s!", name))
-							next(sess)
-							return
-						}
-					}
-					wish.Println(sess, "Hey, I don't know who you are!")
-					next(sess)
-				}
-			},
-			logging.Middleware(),
-		),
-	)
-	if err != nil {
-		log.Error("Could not start server", "error", err)
-	}
-
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	log.Info("Starting SSH server", "host", host, "port", port)
-	go func() {
-		if err = s.ListenAndServe(); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
-			log.Error("Could not start server", "error", err)
-			done <- nil
-		}
-	}()
 
 	// Connect to a database
 	dsn := os.Getenv("DATABASE_URL")
@@ -108,6 +63,45 @@ func main() {
 		log.Error("Could not create schema", "error", err)
 		return
 	}
+
+	s, err := wish.NewServer(
+		wish.WithAddress(net.JoinHostPort(host, port)),
+		wish.WithHostKeyPath(".ssh/id_ed25519"),
+		wish.WithPublicKeyAuth(func(ctx ssh.Context, key ssh.PublicKey) bool {
+			return true
+		}),
+		wish.WithMiddleware(
+			func(next ssh.Handler) ssh.Handler {
+				return func(sess ssh.Session) {
+					// if the current session's user public key is one of the
+					// known users, we greet them and return.
+					user, message, err := database.GetUser(db, sess)
+
+					if err != nil {
+						wish.Println(sess, message)
+						log.Error("Could not get user", "error", err)
+						next(sess)
+						return
+					}
+
+					wish.Println(sess, fmt.Sprintf(message, user.Name))
+					next(sess)
+				}
+			},
+			logging.Middleware(),
+		),
+	)
+	if err != nil {
+		log.Error("Could not start server", "error", err)
+	}
+
+	log.Info("Starting SSH server", "host", host, "port", port)
+	go func() {
+		if err = s.ListenAndServe(); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
+			log.Error("Could not start server", "error", err)
+			done <- nil
+		}
+	}()
 
 	log.Info("Ready!")
 
