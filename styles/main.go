@@ -14,3 +14,11 @@ var Warn = lipgloss.NewStyle().
 var Info = lipgloss.NewStyle().
 	Italic(true).
 	Foreground(lipgloss.Color("2"))
+
+var Normal = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("7"))
+
+var Code = lipgloss.NewStyle().
+	Italic(true).
+	Background(lipgloss.Color("5")).
+	Foreground(lipgloss.Color("0"))

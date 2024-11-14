@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"net"
 	"os"
 	"os/signal"
@@ -21,6 +22,7 @@ import (
 	"github.com/uptrace/bun/driver/pgdriver"
 
 	database "github.com/kcoderhtml/pip/db"
+	"github.com/kcoderhtml/pip/styles"
 )
 
 const (
@@ -86,6 +88,24 @@ func main() {
 					}
 
 					wish.Println(sess, message)
+
+					_, _, isPty := sess.Pty()
+					if isPty {
+						wish.Println(sess, styles.Normal.Render("\nTo upload a paste simply run: "+styles.Code.Render(" cat example.md | ssh dunkirk.sh")+"\n "))
+						next(sess)
+						return
+					}
+
+					// read any input
+					buf := make([]byte, 1024)
+					_, err = sess.Read(buf)
+					if err != nil {
+						log.Error("Could not read from session", "error", err)
+					}
+
+					fmt.Println(string(buf))
+					wish.Println(sess, styles.Normal.Render("\nPaste Saved!\n"))
+
 					next(sess)
 				}
 			},
