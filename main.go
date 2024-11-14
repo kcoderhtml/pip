@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"net"
 	"os"
 	"os/signal"
@@ -75,16 +74,18 @@ func main() {
 				return func(sess ssh.Session) {
 					// if the current session's user public key is one of the
 					// known users, we greet them and return.
-					user, message, err := database.GetUser(db, sess)
+					_, message, err := database.GetUser(db, sess)
 
 					if err != nil {
 						wish.Println(sess, message)
-						log.Error("Could not get user", "error", err)
+						if !errors.Is(err, database.ErrUnauthorized) {
+							log.Error("Could not get user", "error", err)
+						}
 						next(sess)
 						return
 					}
 
-					wish.Println(sess, fmt.Sprintf(message, user.Name))
+					wish.Println(sess, message)
 					next(sess)
 				}
 			},

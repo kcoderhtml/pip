@@ -4,9 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/charmbracelet/log"
 	"github.com/charmbracelet/ssh"
+	"github.com/kcoderhtml/pip/styles"
 	"github.com/uptrace/bun"
 
 	gossh "golang.org/x/crypto/ssh"
@@ -24,6 +26,10 @@ type SshKey struct {
 	Fingerprint string `bun:"user_id"`
 	Type        string `bun:"key,notnull"`
 }
+
+var (
+	ErrUnauthorized = errors.New("unauthorized")
+)
 
 // create tables if they don't exist
 func CreateSchema(db *bun.DB) error {
@@ -49,7 +55,7 @@ func GetUser(db *bun.DB, sess ssh.Session) (*User, string, error) {
 	err := db.NewSelect().Model(user).Where("name = ?", sess.User()).Scan(context.Background())
 
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return nil, "there was an error finding you in the db", err
+		return nil, styles.Error.Render("X there was an error finding you in the db"), err
 	}
 
 	fingerprint := gossh.FingerprintSHA256(sess.PublicKey())
@@ -65,23 +71,23 @@ func GetUser(db *bun.DB, sess ssh.Session) (*User, string, error) {
 
 		_, err := db.NewInsert().Model(user).Exec(context.Background())
 		if err != nil {
-			return nil, "there was an error creating you in the db", err
+			return nil, styles.Error.Render("X there was an error creating you in the db"), err
 		}
 
 		log.Info("Created new user", "name", user.Name, "keyType", user.SshKeys[0].Type)
 
-		return user, "welcome to pip %s!", nil
+		return user, styles.Info.Render(fmt.Sprintf("welcome to pip %s!", sess.User())), nil
 	}
 
 	// check whether the user's key is authorized
 	for _, key := range user.SshKeys {
 		if key.Fingerprint == fingerprint && key.Type == sess.PublicKey().Type() {
 			log.Info("Authorized user", "name", user.Name, "keyType", key.Type)
-			return user, "welcome back to pip %s!", nil
+			return user, styles.Info.Render(fmt.Sprintf("✔ welcome back to pip %s!", sess.User())), nil
 		}
 	}
 
 	log.Warn("Unauthorized user", "name", user.Name, "keyType", sess.PublicKey().Type())
 
-	return user, "your key doesn't match; try another?", errors.New("unauthorized")
+	return user, styles.Warn.Render("🔒your key doesn't match. try another?"), ErrUnauthorized
 }
