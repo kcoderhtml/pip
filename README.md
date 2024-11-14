@@ -1,18 +1,14 @@
 <h1 align="center">Pip</h1>
 
 <p align="center">
-  <a href="https://highseas.hackclub.com">
-    <img src="https://img.shields.io/badge/made%20for%20high%20seas-FEC2FB?style=for-the-badge&logo=hackclub&logoColor=1C4188" alt="Made for High Seas">
-  </a>
-  <a href="https://waka.hackclub.com">
-    <img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fwaka.hackclub.com%2Fapi%2Fcompat%2Fshields%2Fv1%2FU062UG485EE%2Finterval%3Aall_time%2Fproject%3Apip&query=%24.message&style=for-the-badge&logo=wakatime&label=Hackatime&labelColor=417558&color=365A5C" alt="Time spent on this">
-  </a>
+  <img hspace="10" src="https://img.shields.io/badge/made%20for%20high%20seas-FEC2FB?style=for-the-badge&logo=hackclub&logoColor=1C4188" alt="Made for High Seas">
+  <img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fwaka.hackclub.com%2Fapi%2Fcompat%2Fshields%2Fv1%2FU062UG485EE%2Finterval%3Aall_time%2Fproject%3Apip&query=%24.message&style=for-the-badge&logo=wakatime&label=Hackatime&labelColor=417558&color=365A5C" alt="Time spent on this">
 </p>
 
 #
 
 <p align="center">
-  <img width="460" height="460" src="https://raw.githubusercontent.com/kcoderhtml/pip/refs/heads/master/.github/images/logo.png">
+  <img width="460" height="460" src="https://github.com/kcoderhtml/pip/raw/master/.github/images/logo.png">
 </p>
 
 <p align="center">
