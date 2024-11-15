@@ -70,6 +70,13 @@ func main() {
 		return
 	}
 
+	detector, err := utils.NewLangDetector(os.Getenv("GUESSLANG_URL"))
+	if err != nil {
+		log.Error("Could not initialize language detector", "error", err)
+		return
+	}
+	log.Info("Initialized language detector", "url", os.Getenv("GUESSLANG_URL"))
+
 	s, err := wish.NewServer(
 		wish.WithAddress(net.JoinHostPort(host, port)),
 		wish.WithHostKeyPath(".ssh/id_ed25519"),
@@ -117,7 +124,7 @@ func main() {
 
 					fmt.Println("size", size, "n", n, "isEOF", isEOF, "err", err, "content", string(content))
 
-					answer, err := utils.GetLang(string(buf))
+					answer, err := detector.GetLang(string(buf))
 					if err != nil {
 						log.Error("Could not guess language", "error", err)
 					}
