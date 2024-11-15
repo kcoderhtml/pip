@@ -20,6 +20,15 @@ type User struct {
 	ID      int64    `bun:"id,pk,autoincrement"`
 	Name    string   `bun:"name,notnull,unique"`
 	SshKeys []SshKey `bun:"ssh_keys,type:jsonb"`
+	Pastes  []string `bun:"pastes,type:jsonb"`
+}
+
+type Paste struct {
+	bun.BaseModel `bun:"table:pastes,alias:p"`
+	ID            int64  `bun:"id,pk,autoincrement"`
+	Content       string `bun:"content,notnull"`
+	Language      string `bun:"language,notnull"`
+	Expiry        string `bun:"expiry,notnull"`
 }
 
 type SshKey struct {
@@ -35,6 +44,7 @@ var (
 func CreateSchema(db *bun.DB) error {
 	models := []interface{}{
 		(*User)(nil),
+		(*Paste)(nil),
 	}
 
 	for _, model := range models {
@@ -90,4 +100,27 @@ func GetUser(db *bun.DB, sess ssh.Session) (*User, string, error) {
 	log.Warn("Unauthorized user", "name", user.Name, "keyType", sess.PublicKey().Type())
 
 	return user, styles.Warn.Render("🔒your key doesn't match. try another?"), ErrUnauthorized
+}
+
+// create paste
+func CreatePaste(db *bun.DB, user *User, content string, lang string, expiry string) (*Paste, error) {
+	paste := &Paste{
+		Content:  content,
+		Language: lang,
+		Expiry:   expiry,
+	}
+
+	_, err := db.NewInsert().Model(paste).Exec(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	// add paste to user via sql
+	user.Pastes = append(user.Pastes, paste.Content)
+	_, err = db.NewUpdate().Model(user).Where("name = ?", user.Name).Set("pastes = ?", user.Pastes).Exec(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return paste, nil
 }

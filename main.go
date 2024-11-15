@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"os/signal"
@@ -21,8 +22,12 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 
+	shorturl "github.com/aviddiviner/shortcode-go"
+	humanize "github.com/dustin/go-humanize"
+
 	database "github.com/kcoderhtml/pip/db"
 	"github.com/kcoderhtml/pip/styles"
+	"github.com/kcoderhtml/pip/utils"
 )
 
 const (
@@ -76,7 +81,7 @@ func main() {
 				return func(sess ssh.Session) {
 					// if the current session's user public key is one of the
 					// known users, we greet them and return.
-					_, message, err := database.GetUser(db, sess)
+					user, message, err := database.GetUser(db, sess)
 
 					if err != nil {
 						wish.Println(sess, message)
@@ -97,14 +102,34 @@ func main() {
 					}
 
 					// read any input
-					buf := make([]byte, 1024)
-					_, err = sess.Read(buf)
-					if err != nil {
+					content := make([]byte, 0)
+					size := uint64(0)
+					buf := make([]byte, 512*1024) // 512kib
+					n, err := sess.Read(buf)
+					isEOF := errors.Is(err, io.EOF)
+					if err != nil && !isEOF {
 						log.Error("Could not read from session", "error", err)
+						return
 					}
 
-					fmt.Println(string(buf))
-					wish.Println(sess, styles.Normal.Render("\nPaste Saved!\n"))
+					size += uint64(n)
+					content = append(content, buf[:n]...)
+
+					fmt.Println("size", size, "n", n, "isEOF", isEOF, "err", err, "content", string(content))
+
+					answer, err := utils.GetLang(string(buf))
+					if err != nil {
+						log.Error("Could not guess language", "error", err)
+					}
+
+					wish.Println(sess, styles.Normal.Render("\nDetected language: "+styles.Info.Render(answer)+"\nSize: "+styles.Info.Render(humanize.Bytes(size))+"\n"))
+
+					res, err := database.CreatePaste(db, user, string(content), answer, "never")
+					if err != nil {
+						log.Error("Could not create paste", "error", err)
+					}
+
+					wish.Println(sess, styles.Info.Render("Paste Saved!"+"\n"+styles.Normal.Render("To view your paste visit: ")+styles.Code.Render("https://pip.dunkirk.sh/"+shorturl.EncodeID(int(res.ID)))))
 
 					next(sess)
 				}
