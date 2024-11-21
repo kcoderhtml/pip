@@ -20,7 +20,7 @@ type User struct {
 	ID      int64    `bun:"id,pk,autoincrement"`
 	Name    string   `bun:"name,notnull,unique"`
 	SshKeys []SshKey `bun:"ssh_keys,type:jsonb"`
-	Pastes  []string `bun:"pastes,type:jsonb"`
+	Pastes  []int64  `bun:"pastes,type:jsonb"`
 }
 
 type Paste struct {
@@ -116,7 +116,7 @@ func CreatePaste(db *bun.DB, user *User, content string, lang string, expiry str
 	}
 
 	// add paste to user via sql
-	user.Pastes = append(user.Pastes, paste.Content)
+	user.Pastes = append(user.Pastes, paste.ID)
 	_, err = db.NewUpdate().Model(user).Where("name = ?", user.Name).Set("pastes = ?", user.Pastes).Exec(context.Background())
 	if err != nil {
 		return nil, err
