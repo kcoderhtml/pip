@@ -107,8 +107,9 @@ func main() {
 
 					_, _, isPty := sess.Pty()
 					if isPty {
-						wish.Println(sess, styles.Normal.Render("\nTo upload a paste simply run: "+styles.Code.Render(" cat example.md | ssh dunkirk.sh")+"\n "))
+						wish.Println(sess, styles.Normal.Render("\nTo upload a paste simply run: "+styles.Code.Render("cat example.md | ssh dunkirk.sh")+"\n"))
 						next(sess)
+						wish.Println(sess, styles.Normal.Render("\nYou currently have "+styles.Code.Render(fmt.Sprintf("%d", len(user.Pastes)))+" pastes.\n"))
 						return
 					}
 
