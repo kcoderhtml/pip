@@ -38,7 +38,7 @@ func (ld *LangDetector) GetLang(text string) (string, error) {
 		return lang, nil
 	}
 
-	return "", nil
+	return "unkown", nil
 }
 
 func (ld *LangDetector) testBaseURL() error {
