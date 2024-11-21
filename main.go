@@ -26,6 +26,7 @@ import (
 	humanize "github.com/dustin/go-humanize"
 
 	database "github.com/kcoderhtml/pip/db"
+	"github.com/kcoderhtml/pip/httpServer"
 	"github.com/kcoderhtml/pip/styles"
 	"github.com/kcoderhtml/pip/utils"
 )
@@ -76,6 +77,9 @@ func main() {
 		return
 	}
 	log.Info("Initialized language detector", "url", os.Getenv("GUESSLANG_URL"))
+
+	httpServer := httpServer.NewServer("localhost:8080", db)
+	log.Info("Starting HTTP server", "port", 8080)
 
 	s, err := wish.NewServer(
 		wish.WithAddress(net.JoinHostPort(host, port)),
@@ -159,10 +163,13 @@ func main() {
 	log.Info("Ready!")
 
 	<-done
-	log.Info("Stopping SSH server")
+	log.Info("Stopping servers")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer func() { cancel() }()
 	if err := s.Shutdown(ctx); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
-		log.Error("Could not stop server", "error", err)
+		log.Error("Could not stop SSH server", "error", err)
+	}
+	if err := httpServer.Shutdown(ctx); err != nil {
+		log.Error("Could not stop HTTP server", "error", err)
 	}
 }

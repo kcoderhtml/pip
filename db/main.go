@@ -124,3 +124,13 @@ func CreatePaste(db *bun.DB, user *User, content string, lang string, expiry str
 
 	return paste, nil
 }
+
+func GetPaste(db *bun.DB, id int) (*Paste, error) {
+	paste := &Paste{}
+	err := db.NewSelect().Model(paste).Where("id = ?", id).Scan(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return paste, nil
+}
