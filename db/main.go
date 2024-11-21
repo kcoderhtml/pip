@@ -17,10 +17,11 @@ import (
 type User struct {
 	bun.BaseModel `bun:"table:users,alias:u"`
 
-	ID      int64    `bun:"id,pk,autoincrement"`
-	Name    string   `bun:"name,notnull,unique"`
-	SshKeys []SshKey `bun:"ssh_keys,type:jsonb"`
-	Pastes  []int64  `bun:"pastes,type:jsonb"`
+	ID         int64    `bun:"id,pk,autoincrement"`
+	Name       string   `bun:"name,notnull,unique"`
+	SshKeys    []SshKey `bun:"ssh_keys,type:jsonb"`
+	Pastes     []int64  `bun:"pastes,type:jsonb"`
+	PastesSize uint64   `bun:"pastes_size"`
 }
 
 type Paste struct {
@@ -29,6 +30,7 @@ type Paste struct {
 	Content       string `bun:"content,notnull"`
 	Language      string `bun:"language,notnull"`
 	Expiry        string `bun:"expiry,notnull"`
+	Size          uint64 `bun:"size"`
 }
 
 type SshKey struct {
@@ -103,11 +105,12 @@ func GetUser(db *bun.DB, sess ssh.Session) (*User, string, error) {
 }
 
 // create paste
-func CreatePaste(db *bun.DB, user *User, content string, lang string, expiry string) (*Paste, error) {
+func CreatePaste(db *bun.DB, user *User, content string, lang string, expiry string, size uint64) (*Paste, error) {
 	paste := &Paste{
 		Content:  content,
 		Language: lang,
 		Expiry:   expiry,
+		Size:     size,
 	}
 
 	_, err := db.NewInsert().Model(paste).Exec(context.Background())
@@ -117,7 +120,7 @@ func CreatePaste(db *bun.DB, user *User, content string, lang string, expiry str
 
 	// add paste to user via sql
 	user.Pastes = append(user.Pastes, paste.ID)
-	_, err = db.NewUpdate().Model(user).Where("name = ?", user.Name).Set("pastes = ?", user.Pastes).Exec(context.Background())
+	_, err = db.NewUpdate().Model(user).Where("name = ?", user.Name).Set("pastes = ?", user.Pastes).Set("pastes_size = ?", user.PastesSize+size).Exec(context.Background())
 	if err != nil {
 		return nil, err
 	}

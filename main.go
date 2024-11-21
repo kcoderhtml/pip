@@ -109,7 +109,7 @@ func main() {
 					if isPty {
 						wish.Println(sess, styles.Normal.Render("\nTo upload a paste simply run: "+styles.Code.Render("cat example.md | ssh dunkirk.sh")+"\n"))
 						next(sess)
-						wish.Println(sess, styles.Normal.Render("\nYou currently have "+styles.Code.Render(fmt.Sprintf("%d", len(user.Pastes)))+" pastes.\n"))
+						wish.Println(sess, styles.Normal.Render("\nYou currently have "+styles.Code.Render(fmt.Sprintf("%d", len(user.Pastes)))+" pastes totaling "+humanize.Bytes(user.PastesSize)+".\n"))
 						return
 					}
 
@@ -136,7 +136,7 @@ func main() {
 
 					wish.Println(sess, styles.Normal.Render("\nDetected language: "+styles.Info.Render(answer)+"\nSize: "+styles.Info.Render(humanize.Bytes(size))+"\n"))
 
-					res, err := database.CreatePaste(db, user, string(content), answer, "never")
+					res, err := database.CreatePaste(db, user, string(content), answer, "never", size)
 					if err != nil {
 						log.Error("Could not create paste", "error", err)
 					}
