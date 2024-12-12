@@ -18,7 +18,7 @@ require (
 	github.com/yuin/goldmark v1.7.8
 	github.com/yuin/goldmark-emoji v1.0.4
 	github.com/yuin/goldmark-highlighting/v2 v2.0.0-20230729083705-37449abec8cc
-	golang.org/x/crypto v0.28.0
+	golang.org/x/crypto v0.31.0
 )
 
 require (
@@ -52,8 +52,8 @@ require (
 	github.com/vmihailenco/tagparser v0.1.2 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
-	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.26.0 // indirect
-	golang.org/x/text v0.19.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	mellium.im/sasl v0.3.2 // indirect
 )
